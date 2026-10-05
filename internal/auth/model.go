@@ -7,6 +7,7 @@ import (
 )
 
 var ErrUsernameRequired = errors.New("username is required")
+var ErrUserNotFound = errors.New("user not found")
 var ErrEmailRequired = errors.New("email is required")
 var ErrPasswordTooShort = errors.New("password must be atleast 6 character")
 var ErrUserAlreadyExists = errors.New("username and email already exist")
