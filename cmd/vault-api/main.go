@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/itz-prashant/secret-vault-api/internal/auth"
 	"github.com/itz-prashant/secret-vault-api/internal/config"
 	"github.com/itz-prashant/secret-vault-api/internal/db"
 	"github.com/itz-prashant/secret-vault-api/internal/utils/response"
@@ -38,6 +39,12 @@ func main() {
 			"status": "ok",
 		})
 	})
+
+	authRepo := auth.NewRepository(sqlDb.Db)
+	authService := auth.NewService(authRepo)
+	authHandler := auth.NeWHandler(authService) 
+
+	mux.HandleFunc("POST /api/v1/auth/register", authHandler.HanldeRegister)
 
 	server := http.Server{
 		Addr:         cfg.Address,
