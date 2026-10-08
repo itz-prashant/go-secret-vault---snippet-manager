@@ -12,6 +12,7 @@ var ErrEmailRequired = errors.New("email is required")
 var ErrPasswordTooShort = errors.New("password must be atleast 6 character")
 var ErrUserAlreadyExists = errors.New("username and email already exist")
 var ErrInvalidCredentials = errors.New("invalid email or password")
+var ErrSessionNotFound = errors.New("session not found")
 
 type User struct {
 	Id int64 `json:"id"`
@@ -50,4 +51,5 @@ type Repository interface {
 	GetUserByEmail (ctx context.Context, email string) (*User, error)
 	GetUserByUserName (ctx context.Context, username string) (*User, error)
 	CreateSession (ctx context.Context, session *Session)  error
+	GetSession (ctx context.Context, token string) (*Session, error)
 }

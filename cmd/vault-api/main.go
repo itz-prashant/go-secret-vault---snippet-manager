@@ -14,6 +14,7 @@ import (
 	"github.com/itz-prashant/secret-vault-api/internal/auth"
 	"github.com/itz-prashant/secret-vault-api/internal/config"
 	"github.com/itz-prashant/secret-vault-api/internal/db"
+	"github.com/itz-prashant/secret-vault-api/internal/middleware"
 	"github.com/itz-prashant/secret-vault-api/internal/utils/response"
 )
 
@@ -43,9 +44,11 @@ func main() {
 	authRepo := auth.NewRepository(sqlDb.Db)
 	authService := auth.NewService(authRepo)
 	authHandler := auth.NeWHandler(authService) 
+	authMiddleware := middleware.NewAuthMiddleware(authRepo)
 
 	mux.HandleFunc("POST /api/v1/auth/register", authHandler.HanldeRegister)
 	mux.HandleFunc("POST /api/v1/auth/login", authHandler.HandleLogin)
+	mux.HandleFunc("GET /api/v1/auth/me", authMiddleware.RequireAuth(authHandler.HandleMe))
 
 	server := http.Server{
 		Addr:         cfg.Address,

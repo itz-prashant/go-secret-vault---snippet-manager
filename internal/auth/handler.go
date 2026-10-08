@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/itz-prashant/secret-vault-api/internal/appcontext"
 	"github.com/itz-prashant/secret-vault-api/internal/utils/response"
 )
 
@@ -63,4 +64,19 @@ func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.WriteJson(w, http.StatusOK, loginResp)
+}
+
+func (h *Handler) HandleMe(w http.ResponseWriter, r *http.Request) {
+	userID, ok := appcontext.GetUserId(r.Context())
+
+	if !ok {
+		response.WriteError(w, http.StatusUnauthorized, "unauthorizes")
+		return
+	}
+
+	response.WriteJson(w, http.StatusOK, map[string]any{
+		"authenticated": true,
+		"user_id":       userID,
+		"message":       "you are accessing a protected route!",
+	})
 }

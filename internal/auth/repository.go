@@ -93,3 +93,27 @@ func (s *sqliteRepository) CreateSession(ctx context.Context, session *Session) 
 
 	return nil
 }
+
+func (s *sqliteRepository) GetSession(ctx context.Context, token string) (*Session, error){
+	query := `SELECT token, user_id, expires_at, created_at FROM sessions WHERE token = ?`
+
+	row := s.db.QueryRowContext(ctx, query, token)
+
+	var session Session
+
+	err := row.Scan(
+		&session.Token,
+		&session.UserId,
+		&session.ExpiresAt,
+		&session.CreatedAt,
+	)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows){
+			return nil, ErrSessionNotFound
+		}
+		return nil, fmt.Errorf("internal server error %w", err)
+	}
+
+	return &session, nil
+}
