@@ -45,6 +45,7 @@ func main() {
 	authHandler := auth.NeWHandler(authService) 
 
 	mux.HandleFunc("POST /api/v1/auth/register", authHandler.HanldeRegister)
+	mux.HandleFunc("POST /api/v1/auth/login", authHandler.HandleLogin)
 
 	server := http.Server{
 		Addr:         cfg.Address,

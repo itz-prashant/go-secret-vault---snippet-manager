@@ -27,7 +27,7 @@ func (h *Handler) HanldeRegister(w http.ResponseWriter, r *http.Request) {
 	user, err := h.service.Register(r.Context(), req)
 
 	if err != nil {
-		if errors.Is(err, ErrUserAlreadyExists){
+		if errors.Is(err, ErrUserAlreadyExists) {
 			response.WriteError(w, http.StatusConflict, err.Error())
 			return
 		}
@@ -41,4 +41,26 @@ func (h *Handler) HanldeRegister(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.WriteJson(w, http.StatusCreated, user)
+}
+
+func (h *Handler) HandleLogin(w http.ResponseWriter, r *http.Request) {
+	var req LoginRequest
+
+	if err := response.ReadJson(r, &req); err != nil {
+		response.WriteError(w, http.StatusBadRequest, "invalid request payload")
+		return
+	}
+
+	loginResp, err := h.service.Login(r.Context(), req)
+
+	if err != nil {
+		if errors.Is(err, ErrInvalidCredentials) {
+			response.WriteError(w, http.StatusUnauthorized, err.Error())
+			return
+		}
+		response.WriteError(w, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	response.WriteJson(w, http.StatusOK, loginResp)
 }

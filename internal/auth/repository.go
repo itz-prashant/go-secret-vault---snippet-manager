@@ -50,7 +50,7 @@ func (s *sqliteRepository) GetUserByEmail(ctx context.Context, email string) (*U
 
 	var user User
 
-	err := row.Scan(&user.Id, &user.UserName, &user.Email, &user.CreatedAt)
+	err := row.Scan(&user.Id, &user.UserName, &user.Email, &user.PasswordHash ,&user.CreatedAt)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -69,7 +69,7 @@ func (s *sqliteRepository) GetUserByUserName(ctx context.Context, username strin
 
 	var user User
 
-	err := row.Scan(&user.Id, &user.UserName, &user.Email, &user.CreatedAt)
+	err := row.Scan(&user.Id, &user.UserName, &user.Email, &user.PasswordHash , &user.CreatedAt)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -83,7 +83,7 @@ func (s *sqliteRepository) GetUserByUserName(ctx context.Context, username strin
 }
 
 func (s *sqliteRepository) CreateSession(ctx context.Context, session *Session) error {
-	query := `INSERT INTO sessions (token, user_id, expires_at, created_at) VALUE (?,?,?,?)`
+	query := `INSERT INTO sessions (token, user_id, expires_at, created_at) VALUES (?,?,?,?)`
 
 	_, err := s.db.ExecContext(ctx, query, session.Token, session.UserId, session.ExpiresAt, session.CreatedAt)
 

@@ -62,7 +62,7 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, 
 		if errors.Is(err, ErrUserNotFound) {
 			return nil, ErrInvalidCredentials
 		}
-		return nil, err // DB Error
+		return nil, err 
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password))
