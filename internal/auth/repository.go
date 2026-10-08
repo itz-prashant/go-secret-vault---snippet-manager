@@ -81,3 +81,15 @@ func (s *sqliteRepository) GetUserByUserName(ctx context.Context, username strin
 
 	return &user, nil
 }
+
+func (s *sqliteRepository) CreateSession(ctx context.Context, session *Session) error {
+	query := `INSERT INTO sessions (token, user_id, expires_at, created_at) VALUE (?,?,?,?)`
+
+	_, err := s.db.ExecContext(ctx, query, session.Token, session.UserId, session.ExpiresAt, session.CreatedAt)
+
+	if err != nil {
+		return  fmt.Errorf("failed to insert session %w", err)
+	}
+
+	return nil
+}
