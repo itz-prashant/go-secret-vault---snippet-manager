@@ -2,6 +2,9 @@ package auth
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -51,4 +54,42 @@ func (s *Service) Register(ctx context.Context, req RegisterRequest) (*User, err
 		return nil, err
 	}
 	return user, nil
+}
+
+func (s *Service) Login(ctx context.Context, req LoginRequest) (*LoginResponse, error) {
+	user, err := s.repo.GetUserByEmail(ctx, strings.ToLower(strings.TrimSpace(req.Email)))
+	if err != nil {
+		if errors.Is(err, ErrUserNotFound) {
+			return nil, ErrInvalidCredentials
+		}
+		return nil, err // DB Error
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password))
+
+	if err != nil {
+		return nil, ErrInvalidCredentials
+	}
+
+	b := make([]byte, 32)
+	_, err = rand.Read(b)
+	token := hex.EncodeToString(b)
+
+	now := time.Now().UTC()
+	expiresAt := now.Add(24 * time.Hour)
+
+	sessions := &Session{
+		Token:     token,
+		UserId:    user.Id,
+		ExpiresAt: expiresAt,
+		CreatedAt: now,
+	}
+
+	err = s.repo.CreateSession(ctx, sessions)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &LoginResponse{Token: token, ExpiresAt: expiresAt, User: user}, nil
 }
