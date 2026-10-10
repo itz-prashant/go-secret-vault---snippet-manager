@@ -15,6 +15,7 @@ import (
 	"github.com/itz-prashant/secret-vault-api/internal/config"
 	"github.com/itz-prashant/secret-vault-api/internal/db"
 	"github.com/itz-prashant/secret-vault-api/internal/middleware"
+	"github.com/itz-prashant/secret-vault-api/internal/snippet"
 	"github.com/itz-prashant/secret-vault-api/internal/utils/response"
 )
 
@@ -46,9 +47,19 @@ func main() {
 	authHandler := auth.NeWHandler(authService) 
 	authMiddleware := middleware.NewAuthMiddleware(authRepo)
 
+	snippetRepo := snippet.NewRepository(sqlDb.Db)
+	snippetService := snippet.NewService(snippetRepo)
+	snippetHandler := snippet.NewHandler(snippetService)
+
 	mux.HandleFunc("POST /api/v1/auth/register", authHandler.HanldeRegister)
 	mux.HandleFunc("POST /api/v1/auth/login", authHandler.HandleLogin)
 	mux.HandleFunc("GET /api/v1/auth/me", authMiddleware.RequireAuth(authHandler.HandleMe))
+
+	mux.HandleFunc("POST /api/v1/snippets/create", authMiddleware.RequireAuth(snippetHandler.HandleCreate))
+	mux.HandleFunc("GET /api/v1/snippets/{id}", authMiddleware.RequireAuth(snippetHandler.HandleGet))
+	mux.HandleFunc("GET /api/v1/snippets", authMiddleware.RequireAuth(snippetHandler.HandleList))
+	mux.HandleFunc("PUT /api/v1/snippets/{id}", authMiddleware.RequireAuth(snippetHandler.HandleUpdate))
+	mux.HandleFunc("DELETE /api/v1/snippets/{id}", authMiddleware.RequireAuth(snippetHandler.HandleDelete))
 
 	server := http.Server{
 		Addr:         cfg.Address,
