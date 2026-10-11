@@ -6,16 +6,19 @@ import (
 	"strconv"
 
 	"github.com/itz-prashant/secret-vault-api/internal/appcontext"
+	"github.com/itz-prashant/secret-vault-api/internal/audit"
 	"github.com/itz-prashant/secret-vault-api/internal/utils/response"
 )
 
 type Hanlder struct {
 	service *Service
+	auditService *audit.Service
 }
 
-func NewHandler(service *Service) *Hanlder {
+func NewHandler(service *Service, auditService *audit.Service) *Hanlder {
 	return &Hanlder{
 		service: service,
+		auditService: auditService,
 	}
 }
 
@@ -43,6 +46,12 @@ func (h *Hanlder) HandleCreate(w http.ResponseWriter, r *http.Request) {
 		response.WriteError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}
+
+	h.auditService.Dispatch(audit.Event{
+		UserId: userID,
+		Action: "SNIPPET_CREATED",
+		Metadata: snippet.Title,
+	})
 
 	response.WriteJson(w, http.StatusCreated, snippet)
 }
@@ -159,6 +168,12 @@ func (h *Hanlder) HandleDelete(w http.ResponseWriter, r *http.Request) {
 		response.WriteError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}
+
+	h.auditService.Dispatch(audit.Event{
+		UserId: userID,
+		Action: "SNIPPET_DELETE",
+		Metadata: idStr,
+	})
 
 	w.WriteHeader(http.StatusNoContent)
 }

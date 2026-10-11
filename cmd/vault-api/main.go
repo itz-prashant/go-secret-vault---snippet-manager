@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/itz-prashant/secret-vault-api/internal/audit"
 	"github.com/itz-prashant/secret-vault-api/internal/auth"
 	"github.com/itz-prashant/secret-vault-api/internal/config"
 	"github.com/itz-prashant/secret-vault-api/internal/db"
@@ -47,9 +48,12 @@ func main() {
 	authHandler := auth.NeWHandler(authService) 
 	authMiddleware := middleware.NewAuthMiddleware(authRepo)
 
+	auditService := audit.NewService(sqlDb.Db, 100)
+	defer auditService.Close()
+
 	snippetRepo := snippet.NewRepository(sqlDb.Db)
 	snippetService := snippet.NewService(snippetRepo)
-	snippetHandler := snippet.NewHandler(snippetService)
+	snippetHandler := snippet.NewHandler(snippetService,auditService)
 
 	mux.HandleFunc("POST /api/v1/auth/register", authHandler.HanldeRegister)
 	mux.HandleFunc("POST /api/v1/auth/login", authHandler.HandleLogin)
